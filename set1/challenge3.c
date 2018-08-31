@@ -29,7 +29,7 @@ int main(){
     uint8_t key;
     for(i = 0; i < strlen(attempts); i++){
         key = maxIndex ^ attempts[i];
-        printf("Trying for common character '%c':\n", attempts[i]);
+        printf("Trying for common character '%c'. Key is %2x\n", attempts[i], key & 0xff);
         for(j = 0; j < inputLen; j++)
             printf("%c", inputStr[j] ^ key);
         printf("\n");
