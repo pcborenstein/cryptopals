@@ -76,7 +76,7 @@ int main(){
     //doing 2-80 in case they are sneaky
     numHexVals = 80;
     hexStrLen = (numHexVals * 2) + 1;
-    numBase64Vals = (uint32_t)ceil(numHexVals * 4/3);
+    numBase64Vals = (uint32_t)ceil((float)numHexVals * 4/3);
 
     char * hexStr = malloc(hexStrLen);
     hexStr[hexStrLen - 1] = 0;
