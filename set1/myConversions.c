@@ -61,21 +61,40 @@ void myBase64toHex(const char * inputStr, uint8_t * buff, int inputLen){
 }
 
 
+void base64StrToBase64(const char * inputStr, uint8_t * buff, uint32_t inputLen){
+    uint32_t i, j;
+    for(i = 0; i < inputLen; i++){
+        for(j = 0; j < 64; j++){
+            if(inputStr[i] == base64[j]){
+                buff[i] = j;
+                break;
+            }
+        }
+        if(j == 64){
+            fflush(stdout);
+            fprintf(stderr, "bad base64 character: %d = %c\n", inputStr[i], inputStr[i]);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
 /*
     convert "1234abcd"
     to      0x12|0x34|0xab|0xcd
    */
-void hexStr2Hex(const char * inputStr, uint8_t * buff, uint32_t inputLen){
+void hexStrToHex(const char * inputStr, uint8_t * buff, uint32_t inputLen){
     uint32_t i, j;
     uint8_t numVal;
     j = 0;
     for(i = 0; i < inputLen; i++){
+        printf("%c|%d|", inputStr[i], inputStr[i]);
         if((input[i] >='0') && (input[i] <='9'))
             numVal = input[i] - '0';
         else if((input[i] >='a') && (input[i] <='f'))
             numVal = input[i] - 'a' + 10;
         else{
-            fprintf(stderr, "invalid input #%d: %c\n",i, input[i]);
+            fflush(stdout);
+            fprintf(stderr, "\ninvalid input %d: %d = '%c'\n",i, input[i], input[i]);
             exit(EXIT_FAILURE);
         }
         if((i%2) == 0)

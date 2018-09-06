@@ -10,7 +10,9 @@ extern void myBase64toHex(const char * inputStr, uint8_t * buff, int inputLen);
 
 extern void myHexToBase64(const uint8_t * input, uint8_t * buff, int inputLen);
 
-extern void hexStr2Hex(const char * inputStr, uint8_t * buff, uint32_t inputLen);
+extern void hexStrToHex(const char * inputStr, uint8_t * buff, uint32_t inputLen);
+
+extern void base64StrToBase64(const char * inputStr, uint8_t * buff, uint32_t inputLen);
 
 extern void printBase64(const uint8_t * buff, const uint32_t len);
 

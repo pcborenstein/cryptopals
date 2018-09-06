@@ -46,7 +46,7 @@ void challenge1TestCode(void){
     numBase64Vals = (uint32_t)ceil(numHexVals * 4/3);
     uint8_t * base64Vals = malloc(numBase64Vals);
 
-    hexStr2Hex(challenge1Input, hexVals, strlen(challenge1Input));
+    hexStrToHex(challenge1Input, hexVals, strlen(challenge1Input));
     myHexToBase64(hexVals, base64Vals, numHexVals);
 
     printf("%s\n", challenge1Input);
@@ -60,18 +60,60 @@ void challenge1TestCode(void){
 
     free(hexVals);
     free(base64Vals);
-
 }
+
 int main(){
 
     size_t lineLen = 0;
     char * linePtr = NULL;
 
     FILE * f = fopen("6.txt", "r");
+
+    uint32_t numHexVals;
+    uint32_t hexStrLen;
+    uint32_t numBase64Vals;
+    //site suggests checking a key length 2-40
+    //doing 2-80 in case they are sneaky
+    numHexVals = 80;
+    hexStrLen = (numHexVals * 2) + 1;
+    numBase64Vals = (uint32_t)ceil(numHexVals * 4/3);
+
+    char * hexStr = malloc(hexStrLen);
+    hexStr[hexStrLen - 1] = 0;
+    uint8_t * hexVals = malloc(numHexVals);
+    uint8_t * base64Vals = malloc(numBase64Vals);
+    uint8_t * base64ValsStr = malloc(numBase64Vals);
+
+    uint32_t i, lineIndex;
     getline(&linePtr, &lineLen, f);
+    printf("\nline: %s\n", linePtr);
+    lineIndex = 0;
+    printf("%d numBase64Vals\n", numBase64Vals);
+    for(i = 0; i < numBase64Vals; i++){
+        while(linePtr[lineIndex] == '\n'){
+            free(linePtr);
+            getline(&linePtr, &lineLen, f);
+            lineIndex = 0;
+            printf("line: %s\n", linePtr);
+        }
+        base64ValsStr[i] = linePtr[lineIndex];
+        lineIndex++;
+    }
 
-    printf("%s", linePtr);
+    base64StrToBase64(base64ValsStr, base64Vals, numBase64Vals);
+    printBase64(base64Vals, numBase64Vals);
 
+    /*
+    for(i = 0; i < numHexVals; i++)
+        printf("%02x",hexVals[i]);
+    printf("\n");
+    myHexToBase64(hexVals, base64Vals, numHexVals);
+
+    */
+    free(hexVals);
+    free(hexStr);
+    free(base64Vals);
+    free(base64ValsStr);
     free(linePtr);
 
     return 0;
