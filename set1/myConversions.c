@@ -9,6 +9,10 @@ const char input[] = "49276d206b696c6c696e6720796f757220627261696e206c696b652061
 const char output[] = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
 const char base64[64 + 1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+void testPrint(void){
+    printf("hello world\n");
+}
+
 void myStr2Bytes(const char * inputStr, uint8_t * buff, int len){
 
     int inputLen = strlen(inputStr);
@@ -31,58 +35,98 @@ void myStr2Bytes(const char * inputStr, uint8_t * buff, int len){
     }
 }
 
-void hex2base64(void){
-    //first conver the input string to byte values
-    int inputLen = strlen(input);
-    uint8_t * inputBytes = malloc(inputLen);
-    int i;
+/*
+    convert 00123456|00abcdef|00123456|00abcdef
+    to      123456ab|cdef1234|56abcedf|XXXXXXXX
+   */
+void myBase64toHex(const char * inputStr, uint8_t * buff, int inputLen){
+    uint32_t i, j;
+    for(i = 0; i < inputLen; i++, j++){
+        if((i % 3) == 0){
+            buff[i] = (inputStr[i] << 2) & 0xfc;
+            if(i < (inputLen + 1))
+                buff[i] |= (inputStr[i + 1] >> 4) & 0x3;
+        }else if((i %3) == 1){
+            buff[i] = (inputStr[i] << 4) & 0xf0;
+            if(i < (inputLen + 1))
+                buff[i] |= (inputStr[i + 1] >> 2) & 0x0f;
+        }else{
+            buff[i] = (inputStr[i] << 6) & 0xc0;
+            if(i < (inputLen + 1)){
+                buff[i] |= inputStr[i + 1] & 0x3f;
+                i++;
+            }
+        }
+    }
+}
+
+
+/*
+    convert "1234abcd"
+    to      0x12|0x34|0xab|0xcd
+   */
+void hexStr2Hex(const char * inputStr, uint8_t * buff, uint32_t inputLen){
+    uint32_t i, j;
+    uint8_t numVal;
+    j = 0;
     for(i = 0; i < inputLen; i++){
         if((input[i] >='0') && (input[i] <='9'))
-            inputBytes[i] = input[i] - '0';
+            numVal = input[i] - '0';
         else if((input[i] >='a') && (input[i] <='f'))
-            inputBytes[i] = input[i] - 'a' + 10;
+            numVal = input[i] - 'a' + 10;
         else{
             fprintf(stderr, "invalid input #%d: %c\n",i, input[i]);
             exit(EXIT_FAILURE);
         }
-    }
-
-    //need 1 6-bit outputs per 1.5  4-bit inputs
-    int outLen = ceil(inputLen * 2 / 3);
-    //need 2 bytes to store a 6-bit 64 base number
-    uint16_t * outputBytes = malloc(outLen * sizeof(uint16_t));
-
-    for(i = 0; i < outLen; i++){
-        uint16_t part1, part2;
-        if(i % 2 == 0){
-            part1 = inputBytes[(int)i*3/2];
-            part2 = inputBytes[(int)i*3/2 + 1];
-            outputBytes[i] = ((part1 << 2) & 0x3C) | ((part2 >>2) & 0x3);
-            //printf("considering bytes %x and %x\n", part1, part2);
-            //printf("considering bytes %x and %x\n", 1, ((part2 >>2) & 0x3));
-        }else{
-            part1 = inputBytes[(int)i*3/2];
-            part2 = inputBytes[(int)i*3/2 + 1];
-            outputBytes[i] = ((part1 << 4) & 0x30) | (part2 & 0xf);
+        if((i%2) == 0)
+            buff[j] = (numVal << 4) & 0xf0;
+        else{
+            buff[j] |= numVal & 0x0f;
+            j++;
         }
     }
+}
 
+void printBase64(const uint8_t * buff, const uint32_t len){
+    uint32_t i, j;
+    for(i = 0; i < len; i++, j++){
+        if(buff[i] > 0x3f){
+            fprintf(stderr, "invalid base 64 value %d\n", buff[i]);
+            exit(EXIT_FAILURE);
+        }
+        printf("%c",base64[buff[i]]);
+    }
+    printf("\n");
 
-    printf("my output:\n");
-    for(i = 0; i < outLen; i++){
-        printf("%c", base64[outputBytes[i]]);
+}
+
+/*
+    convert 12345678|abcdefgh|12345678|XXXXXXXX
+    to      00123456|0078abcd|00efgh12|00345678
+   */
+void myHexToBase64(const uint8_t * input, uint8_t * buff, int inputLen){
+
+    if((inputLen & 0x01) != 0){
+        fprintf(stderr, "input needs to be an even number of hex bytes");
+        exit(EXIT_FAILURE);
     }
 
-    printf("\n");
-    for(i = 0; i < outLen; i++){
-        printf("%c", output[i]);
+    uint32_t i, j;
+
+    for(i = 0, j = 0; i < inputLen; i++, j++){
+        uint16_t part1, part2;
+        if(i % 3 == 0){
+            buff[j] = (input[i] >> 2) & 0x3f;
+        }else if((i % 3) == 1){
+            buff[j] = (input[i - 1] << 4) & 0x30;
+            buff[j] |= (input[i] >> 4) & 0x0f;
+        }else{
+            buff[j] = (input[i - 1] << 2) & 0x3C;
+            buff[j] |= (input[i] >> 6) & 0x03;
+            j++;
+            buff[j] = input[i] & 0x3f;
+        }
     }
-
-    printf("\n");
-    printf("^answer from website^\n");
-
-    free(inputBytes);
-
 }
 
 
