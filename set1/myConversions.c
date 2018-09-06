@@ -39,22 +39,24 @@ void myStr2Bytes(const char * inputStr, uint8_t * buff, int len){
     convert 00123456|00abcdef|00123456|00abcdef
     to      123456ab|cdef1234|56abcedf|XXXXXXXX
    */
-void myBase64toHex(const char * inputStr, uint8_t * buff, int inputLen){
-    uint32_t i, j;
-    for(i = 0; i < inputLen; i++, j++){
+void myBase64toHex(const uint8_t * inputStr, uint8_t * buff, int inputLen){
+    uint32_t i, j, offset;
+    uint32_t index;
+    for(i = 0, j = 0, offset = 0; (i+offset) < inputLen; i++, j++){
+        index = i + offset;
         if((i % 3) == 0){
-            buff[i] = (inputStr[i] << 2) & 0xfc;
-            if(i < (inputLen + 1))
-                buff[i] |= (inputStr[i + 1] >> 4) & 0x3;
+            buff[j] = (inputStr[index] << 2) & 0xfc;
+            if(index < (inputLen + 1))
+                buff[j] |= (inputStr[index + 1] >> 4) & 0x3;
         }else if((i %3) == 1){
-            buff[i] = (inputStr[i] << 4) & 0xf0;
-            if(i < (inputLen + 1))
-                buff[i] |= (inputStr[i + 1] >> 2) & 0x0f;
+            buff[j] = (inputStr[index] << 4) & 0xf0;
+            if(index < (inputLen + 1))
+                buff[j] |= (inputStr[index + 1] >> 2) & 0x0f;
         }else{
-            buff[i] = (inputStr[i] << 6) & 0xc0;
-            if(i < (inputLen + 1)){
-                buff[i] |= inputStr[i + 1] & 0x3f;
-                i++;
+            buff[j] = (inputStr[index] << 6) & 0xc0;
+            if(index < (inputLen + 1)){
+                buff[j] |= inputStr[index + 1] & 0x3f;
+                offset++;
             }
         }
     }

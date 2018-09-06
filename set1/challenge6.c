@@ -84,6 +84,7 @@ int main(){
     uint8_t * base64Vals = malloc(numBase64Vals);
     uint8_t * base64ValsStr = malloc(numBase64Vals);
 
+    printf("caputing %d base64 characters to form %d hex values\n", numBase64Vals, numHexVals);
     uint32_t i, lineIndex;
     getline(&linePtr, &lineLen, f);
     printf("\nline: %s\n", linePtr);
@@ -102,14 +103,15 @@ int main(){
 
     base64StrToBase64(base64ValsStr, base64Vals, numBase64Vals);
     printBase64(base64Vals, numBase64Vals);
+    hexVals[numBase64Vals - 1] = 0xff;
+    hexVals[70] = 0xaa;
+    myBase64toHex(base64Vals, hexVals, numBase64Vals);
 
-    /*
     for(i = 0; i < numHexVals; i++)
         printf("%02x",hexVals[i]);
     printf("\n");
-    myHexToBase64(hexVals, base64Vals, numHexVals);
+    //myHexToBase64(hexVals, base64Vals, numHexVals);
 
-    */
     free(hexVals);
     free(hexStr);
     free(base64Vals);
