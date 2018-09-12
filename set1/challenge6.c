@@ -68,6 +68,10 @@ int main(){
     char * linePtr = NULL;
 
     FILE * f = fopen("6.txt", "r");
+    if(f == NULL){
+        fprintf(stderr, "input file not found\n");
+        exit(EXIT_FAILURE);
+    }
 
     uint32_t numHexVals;
     uint32_t hexStrLen;
