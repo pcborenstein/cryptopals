@@ -74,52 +74,70 @@ void challenge1TestCode(void){
 
 int main(){
 
+    //testCode();
+
     size_t lineLen = 0;
     char * linePtr = NULL;
     uint32_t i, j, lineIndex;
+    long fileSize;
+    FILE * f = fopen("6.txt", "rb");
 
-    FILE * f = fopen("6.txt", "r");
     if(f == NULL){
         fprintf(stderr, "input file not found\n");
         exit(EXIT_FAILURE);
     }
 
+    fseek(f, 0, SEEK_END);
+    fileSize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    printf("the file is %ld characters long\n", fileSize);
+
+    uint8_t * base64ValsStr = malloc(fileSize);
+    uint8_t * base64Vals;
+    uint8_t * hexVals;
+
     uint32_t numHexVals;
-    uint32_t hexStrLen;
     uint32_t numBase64Vals;
-    //site suggests checking a key length 2-40
-    //doing 2-80 in case they are sneaky
-    numHexVals = 160;
-    hexStrLen = (numHexVals * 2) + 1;
-    numBase64Vals = (uint32_t)ceil((float)numHexVals * 4/3);
 
-    char * hexStr = malloc(hexStrLen);
-    hexStr[hexStrLen - 1] = 0;
-    uint8_t * hexVals = malloc(numHexVals);
-    uint8_t * base64Vals = malloc(numBase64Vals);
-    uint8_t * base64ValsStr = malloc(numBase64Vals);
-
-    //testCode();
-
-    printf("caputing %d base64 characters to form %d hex values\n", numBase64Vals, numHexVals);
+    linePtr = NULL;
+    lineLen = 0;
     getline(&linePtr, &lineLen, f);
     lineIndex = 0;
-    for(i = 0; i < numBase64Vals; i++){
+    ssize_t charsRead;
+    for(i = 0;; i++){
         while(linePtr[lineIndex] == '\n'){
             free(linePtr);
-            getline(&linePtr, &lineLen, f);
+            linePtr = NULL;
+            lineLen = 0;
+            charsRead = getline(&linePtr, &lineLen, f);
+            if(charsRead == -1)
+                break;
             lineIndex = 0;
+        }
+        if(charsRead == -1)
+            break;
+        //the file ends with a '=' which is not a base 64 character
+        if(isBase64(linePtr[lineIndex]) == 0){
+            free(linePtr);
+            break;
         }
         base64ValsStr[i] = linePtr[lineIndex];
         lineIndex++;
     }
+    numBase64Vals = i;
+    numHexVals = (uint32_t)ceil((float)numBase64Vals * 3 / 4);
+
+    base64Vals = malloc(numBase64Vals);
+    hexVals = malloc(numHexVals);
+
+    printf("caputing %d base64 characters to form %d hex values\n", numBase64Vals, numHexVals);
 
     base64StrToBase64(base64ValsStr, base64Vals, numBase64Vals);
     hexVals[numBase64Vals - 1] = 0xff;
     hexVals[70] = 0xaa;
     myBase64toHex(base64Vals, hexVals, numBase64Vals);
 
-    for(i = 0; i < numHexVals; i++)
+    for(i = 0; i < 120; i++)
         printf("%02x",hexVals[i]);
     printf("\n");
     //myHexToBase64(hexVals, base64Vals, numHexVals);
@@ -145,21 +163,16 @@ int main(){
             bytesChecked += i;
         }
         averageHam[i] = (float)hammingDistance[i] / (float)bytesChecked;
-        printf("size %2d, hamDiff %d, avg %.2f\n", i, hammingDistance[i], averageHam[i]);
         if(averageHam[i] < averageHam[maxHam])
             maxHam = i;
     }
     printf("minimum hamming distance with key length %d\n", maxHam);
 
-    printf("Hamming distance between %02x%02x and %02x%02x is %d\n",
-            hexVals[0], hexVals[1], hexVals[2], hexVals[3], hammingDistance[1]);
-
+    uint32_t keyLen = maxHam;
 
     free(hexVals);
-    free(hexStr);
     free(base64Vals);
     free(base64ValsStr);
-    free(linePtr);
     free(a1);
     free(a2);
 

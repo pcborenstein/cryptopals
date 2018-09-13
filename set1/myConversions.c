@@ -80,6 +80,19 @@ void base64StrToBase64(const char * inputStr, uint8_t * buff, uint32_t inputLen)
     }
 }
 
+int isBase64(char value){
+    uint32_t j;
+    for(j = 0; j < 64; j++){
+        if(value == base64[j]){
+            break;
+        }
+    }
+    if(j == 64)
+        return 0;
+    return 1;
+}
+
+
 /*
     convert "1234abcd"
     to      0x12|0x34|0xab|0xcd

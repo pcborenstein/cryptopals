@@ -18,4 +18,6 @@ extern void printBase64(const uint8_t * buff, const uint32_t len);
 
 extern void testPrint(void);
 
+extern int isBase64(char value);
+
 #endif
