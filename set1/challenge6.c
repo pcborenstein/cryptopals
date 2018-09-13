@@ -99,26 +99,22 @@ int main(){
     uint8_t * base64Vals = malloc(numBase64Vals);
     uint8_t * base64ValsStr = malloc(numBase64Vals);
 
-    testCode();
+    //testCode();
 
     printf("caputing %d base64 characters to form %d hex values\n", numBase64Vals, numHexVals);
     getline(&linePtr, &lineLen, f);
-    printf("\nline: %s\n", linePtr);
     lineIndex = 0;
-    printf("%d numBase64Vals\n", numBase64Vals);
     for(i = 0; i < numBase64Vals; i++){
         while(linePtr[lineIndex] == '\n'){
             free(linePtr);
             getline(&linePtr, &lineLen, f);
             lineIndex = 0;
-            printf("line: %s\n", linePtr);
         }
         base64ValsStr[i] = linePtr[lineIndex];
         lineIndex++;
     }
 
     base64StrToBase64(base64ValsStr, base64Vals, numBase64Vals);
-    printBase64(base64Vals, numBase64Vals);
     hexVals[numBase64Vals - 1] = 0xff;
     hexVals[70] = 0xaa;
     myBase64toHex(base64Vals, hexVals, numBase64Vals);
@@ -132,23 +128,28 @@ int main(){
     uint32_t hammingDistance[81];
     float averageHam[81];
     uint32_t maxHam = 0;
+    uint32_t bytesChecked = 0;
     a1 = malloc(80);
     a2 = malloc(80);
 
     memset(hammingDistance, 0, sizeof(hammingDistance));
     averageHam[maxHam] = 0x7fffffff;
 
-    for(i = 2; i < 80; i++){
-        memcpy(a1, hexVals, i);
-        memcpy(a2, &hexVals[i], i);
+    for(i = 2; i < 40; i++){
+        bytesChecked = 0;
+        for(j = 0; j < numHexVals; j += i){
+            memcpy(a1, &hexVals[j], i);
+            memcpy(a2, &hexVals[i + j], i);
 
-        hammingDistance[i] = hammingDiff(a1, a2, i);
-        averageHam[i] = (float)hammingDistance[i] / (float)i;
+            hammingDistance[i] += hammingDiff(a1, a2, i);
+            bytesChecked += i;
+        }
+        averageHam[i] = (float)hammingDistance[i] / (float)bytesChecked;
         printf("size %2d, hamDiff %d, avg %.2f\n", i, hammingDistance[i], averageHam[i]);
         if(averageHam[i] < averageHam[maxHam])
             maxHam = i;
     }
-    printf("minimume hamming distance with key length %d\n", maxHam);
+    printf("minimum hamming distance with key length %d\n", maxHam);
 
     printf("Hamming distance between %02x%02x and %02x%02x is %d\n",
             hexVals[0], hexVals[1], hexVals[2], hexVals[3], hammingDistance[1]);
