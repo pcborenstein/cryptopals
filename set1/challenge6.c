@@ -137,6 +137,9 @@ int main(){
     hexVals[70] = 0xaa;
     myBase64toHex(base64Vals, hexVals, numBase64Vals);
 
+    free(base64Vals);
+    free(base64ValsStr);
+
     for(i = 0; i < 120; i++)
         printf("%02x",hexVals[i]);
     printf("\n");
@@ -166,15 +169,40 @@ int main(){
         if(averageHam[i] < averageHam[maxHam])
             maxHam = i;
     }
+    free(a1);
+    free(a2);
+
     printf("minimum hamming distance with key length %d\n", maxHam);
 
     uint32_t keyLen = maxHam;
+    uint8_t * key = malloc(keyLen + 1);
+    key[keyLen] = 0;
+    uint8_t count[0xff];
+    uint8_t maxIndex = 0;
+    uint8_t thisChar;
 
+    for(i = 0; i < keyLen; i++){
+        memset(count, 0, 0xff);
+        maxIndex = 0;
+        for(j = i; j < numHexVals; j += keyLen){
+            thisChar = hexVals[j];
+            count[thisChar]++;
+            if(count[thisChar] > count[maxIndex])
+                maxIndex = thisChar;
+        }
+        key[i] = maxIndex ^ ' ';
+    }
+    printf("key: %s\n",key);
+    uint8_t * ans = malloc(numHexVals);
+    memset(ans, 0, numHexVals);
+    for(i = 0; i < numHexVals; i++)
+        ans[i] = key[i % keyLen] ^ hexVals[i];
+
+
+    printf("output:\n%s\n", ans);
+    free(ans);
     free(hexVals);
-    free(base64Vals);
-    free(base64ValsStr);
-    free(a1);
-    free(a2);
+    free(key);
 
     return 0;
 }
